@@ -6,13 +6,13 @@ const int32Max: number = Math.pow(2, 32);
 const cachedTables: Object = {}; // password: [encryptTable, decryptTable]
 const bytes_to_key_results: Object = {};
 
-export function getTable(key: string): Array<Array<any>> {
+export function getTable(key: string): Array<Array<number>> {
   if (cachedTables[key]) {
     return cachedTables[key];
   }
   console.log("calculating ciphers");
-  let table: Array<any> = new Array(256);
-  const decrypt_table: Array<any> = new Array(256);
+  let table: Array<number> = new Array(256);
+  const decrypt_table: Array<number> = new Array(256);
   const md5sum: Hash = crypto.createHash("md5");
   md5sum.update(key);
   const hash: Buffer = md5sum.digest(); // TODO  new Buffer(md5sum.digest(), "binary")
@@ -42,7 +42,7 @@ export function getTable(key: string): Array<Array<any>> {
   return result;
 }
 
-function substitute(table: Array<any>, buf: Buffer) {
+function substitute(table: Array<number>, buf: Buffer) {
   for (let i = 0; i < buf.length; i++) {
     buf[i] = table[buf[i]];
   }
@@ -108,11 +108,11 @@ export class Encryptor {
   iv_sent: boolean;
   cipher: Cipher | Decipher;
   decipher: Cipher | Decipher;
-  encryptTable: any;
-  decryptTable: any;
-  cipher_iv: any;
-  key: any;
-  method: any;
+  encryptTable: Array<number>;
+  decryptTable: Array<number>;
+  cipher_iv: Buffer;
+  key: string;
+  method: string;
 
   constructor(key, method) {
     this.iv_sent = false;
@@ -133,14 +133,14 @@ export class Encryptor {
     return method_supported[method];
   }
 
-  get_cipher(password: string, method: string, op: number, iv: any): Cipher | Decipher {
+  get_cipher(password: string, method: string, op: number, iv: Buffer): Cipher | Decipher {
     method = method.toLowerCase();
     const passwordBuffer = new Buffer(password, "binary");
     const m = this.get_cipher_len(method);
     if (m) {
-      const arr: Array<Buffer> = EVP_BytesToKey(passwordBuffer, m[0], m[1]);
-      const key: Buffer = arr[0];
-      const iv_: Buffer = arr[1];
+      let key: Buffer;
+      let iv_: Buffer;
+      [key, iv_] = EVP_BytesToKey(passwordBuffer, m[0], m[1]);
       if (!iv) {
         iv = iv_;
       }
@@ -193,7 +193,7 @@ export class Encryptor {
   }
 }
 
-export function encryptAll(password, method, op, data): Buffer {
+export function encryptAll(password: string, method: string, op: number, data: Buffer): Buffer {
   let cipher: Cipher | Decipher, iv, key, result;
   if (method === "table") {
     method = null;
