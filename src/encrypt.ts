@@ -4,7 +4,7 @@ import mergeSort from "./mergeSort";
 
 const int32Max: number = Math.pow(2, 32);
 const cachedTables: Object = {}; // password: [encryptTable, decryptTable]
-const bytes_to_key_results: Object = {};
+const bytesToKeyResults: Object = {};
 
 export function getTable(key: string): Array<Array<number>> {
   if (cachedTables[key]) {
@@ -12,7 +12,7 @@ export function getTable(key: string): Array<Array<number>> {
   }
   console.log("calculating ciphers");
   let table: Array<number> = new Array(256);
-  const decrypt_table: Array<number> = new Array(256);
+  const decryptTable: Array<number> = new Array(256);
   const md5sum: Hash = crypto.createHash("md5");
   md5sum.update(key);
   const hash: Buffer = md5sum.digest(); // TODO  new Buffer(md5sum.digest(), "binary")
@@ -34,10 +34,10 @@ export function getTable(key: string): Array<Array<number>> {
   }
   i = 0;
   while (i < 256) {
-    decrypt_table[table[i]] = i;
+    decryptTable[table[i]] = i;
     ++i;
   }
-  const result = [table, decrypt_table];
+  const result = [table, decryptTable];
   cachedTables[key] = result;
   return result;
 }
@@ -50,8 +50,8 @@ function substitute(table: Array<number>, buf: Buffer) {
 }
 
 function EVP_BytesToKey(password: Buffer, key_len: number, iv_len: number): Array<Buffer> {
-  if (bytes_to_key_results[`${password}:${key_len}:${iv_len}`]) {
-    return bytes_to_key_results[`${password}:${key_len}:${iv_len}`];
+  if (bytesToKeyResults[`${password}:${key_len}:${iv_len}`]) {
+    return bytesToKeyResults[`${password}:${key_len}:${iv_len}`];
   }
   let m = [];
   let i = 0;
@@ -71,7 +71,7 @@ function EVP_BytesToKey(password: Buffer, key_len: number, iv_len: number): Arra
   const ms = Buffer.concat(m);
   const key = ms.slice(0, key_len);
   const iv = ms.slice(key_len, key_len + iv_len);
-  bytes_to_key_results[password.toString()] = [key, iv];
+  bytesToKeyResults[password.toString()] = [key, iv];
   return [key, iv];
 }
 
@@ -92,7 +92,7 @@ const method_supported = {
   "seed-cfb": [16, 16],
 };
 
-function create_rc4_md5_cipher(key, iv, op): Cipher | Decipher {
+function createRc4Md5Cipher(key, iv, op): Cipher | Decipher {
   const md5: Hash = crypto.createHash("md5");
   md5.update(key);
   md5.update(iv);
@@ -105,38 +105,38 @@ function create_rc4_md5_cipher(key, iv, op): Cipher | Decipher {
 }
 
 export class Encryptor {
-  iv_sent: boolean;
+  ivSent: boolean;
   cipher: Cipher | Decipher;
   decipher: Cipher | Decipher;
   encryptTable: Array<number>;
   decryptTable: Array<number>;
-  cipher_iv: Buffer;
+  cipherIv: Buffer;
   key: string;
   method: string;
 
   constructor(key, method) {
-    this.iv_sent = false;
+    this.ivSent = false;
     this.key = key;
     this.method = method;
     if (this.method === "table") {
       this.method = null;
     }
     if (this.method) {
-      this.cipher = this.get_cipher(this.key, this.method, 1, crypto.randomBytes(32));
+      this.cipher = this.getCipher(this.key, this.method, 1, crypto.randomBytes(32));
     } else {
       [this.encryptTable, this.decryptTable] = getTable(this.key);
     }
   }
 
-  get_cipher_len(method) {
+  getCipherLen(method) {
     method = method.toLowerCase();
     return method_supported[method];
   }
 
-  get_cipher(password: string, method: string, op: number, iv: Buffer): Cipher | Decipher {
+  getCipher(password: string, method: string, op: number, iv: Buffer): Cipher | Decipher {
     method = method.toLowerCase();
     const passwordBuffer = new Buffer(password, "binary");
-    const m = this.get_cipher_len(method);
+    const m = this.getCipherLen(method);
     if (m) {
       let key: Buffer;
       let iv_: Buffer;
@@ -145,11 +145,11 @@ export class Encryptor {
         iv = iv_;
       }
       if (op === 1) {
-        this.cipher_iv = iv.slice(0, m[1]);
+        this.cipherIv = iv.slice(0, m[1]);
       }
       iv = iv.slice(0, m[1]);
       if (method === "rc4-md5") {
-        return create_rc4_md5_cipher(key, iv, op);
+        return createRc4Md5Cipher(key, iv, op);
       } else {
         if (op === 1) {
           return crypto.createCipheriv(method, key, iv);
@@ -163,11 +163,11 @@ export class Encryptor {
   encrypt(buf: Buffer): Buffer {
     if (this.method) {
       const result: Buffer = this.cipher.update(buf);
-      if (this.iv_sent) {
+      if (this.ivSent) {
         return result;
       } else {
-        this.iv_sent = true;
-        return Buffer.concat([this.cipher_iv, result]);
+        this.ivSent = true;
+        return Buffer.concat([this.cipherIv, result]);
       }
     } else {
       return substitute(this.encryptTable, buf);
@@ -175,13 +175,13 @@ export class Encryptor {
   }
 
   decrypt(buf: Buffer): Buffer {
-    let decipher_iv: Buffer, decipher_iv_len: number, result: Buffer;
+    let decipherIv: Buffer, decipherIvLen: number, result: Buffer;
     if (this.method != null) {
       if (this.decipher == null) {
-        decipher_iv_len = this.get_cipher_len(this.method)[1];
-        decipher_iv = buf.slice(0, decipher_iv_len);
-        this.decipher = this.get_cipher(this.key, this.method, 0, decipher_iv);
-        result = this.decipher.update(buf.slice(decipher_iv_len));
+        decipherIvLen = this.getCipherLen(this.method)[1];
+        decipherIv = buf.slice(0, decipherIvLen);
+        this.decipher = this.getCipher(this.key, this.method, 0, decipherIv);
+        result = this.decipher.update(buf.slice(decipherIvLen));
         return result;
       } else {
         result = this.decipher.update(buf);
@@ -222,7 +222,7 @@ export function encryptAll(password: string, method: string, op: number, data: B
       data = data.slice(ivLen);
     }
     if (method === "rc4-md5") {
-      cipher = create_rc4_md5_cipher(key, iv, op);
+      cipher = createRc4Md5Cipher(key, iv, op);
     } else {
       if (op === 1) {
         cipher = crypto.createCipheriv(method, key, iv);

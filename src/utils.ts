@@ -73,14 +73,14 @@ export const INFO: number = 2;
 export const WARN: number = 3;
 export const ERROR: number = 4;
 
-let _logging_level: number = INFO;
+let loggingLevel: number = INFO;
 
 export function config(level: number): void {
-  _logging_level = level;
+  loggingLevel = level;
 }
 
 export function log(level: number, msg: string): void {
-  if (level >= _logging_level) {
+  if (level >= loggingLevel) {
     if (level >= exports.DEBUG) {
       console.log(new Date().getMilliseconds() + "ms " + msg);
     } else {
@@ -137,14 +137,14 @@ export function inetAton(ipStr: string): Buffer {
 }
 
 setInterval(() => {
-  if (_logging_level <= exports.DEBUG) {
+  if (loggingLevel <= exports.DEBUG) {
     debug(JSON.stringify(process.memoryUsage()));
     if (global.gc) {
       debug("GC");
       global.gc();
       debug(JSON.stringify(process.memoryUsage()));
       const cwd = process.cwd();
-      if (_logging_level === DEBUG) {
+      if (loggingLevel === DEBUG) {
         try {
           process.chdir("/tmp");
           process.chdir(cwd);
