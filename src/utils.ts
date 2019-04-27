@@ -1,4 +1,3 @@
-const util = require("util");
 const pack = require("../../package.json");
 
 const printLocalHelp = (): void => {
@@ -83,9 +82,9 @@ export function config(level: number): void {
 export function log(level: number, msg: string): void {
   if (level >= _logging_level) {
     if (level >= exports.DEBUG) {
-      util.log(new Date().getMilliseconds() + "ms " + msg);
+      console.log(new Date().getMilliseconds() + "ms " + msg);
     } else {
-      util.log(msg);
+      console.log(msg);
     }
   }
 }

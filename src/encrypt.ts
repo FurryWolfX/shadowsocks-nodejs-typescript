@@ -1,6 +1,5 @@
 import { Cipher, Decipher, Hash } from "crypto";
 import * as crypto from "crypto";
-import * as util from "util";
 import mergeSort from "./mergeSort";
 
 const int32Max: number = Math.pow(2, 32);
@@ -11,7 +10,7 @@ export function getTable(key: string): Array<Array<any>> {
   if (cachedTables[key]) {
     return cachedTables[key];
   }
-  util.log("calculating ciphers");
+  console.log("calculating ciphers");
   let table: Array<any> = new Array(256);
   const decrypt_table: Array<any> = new Array(256);
   const md5sum: Hash = crypto.createHash("md5");
