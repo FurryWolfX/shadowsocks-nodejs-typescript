@@ -1,3 +1,5 @@
+import { Args } from "./interface";
+
 const pack = require("../../package.json");
 
 const printLocalHelp = (): void => {
@@ -32,7 +34,7 @@ const printServerHelp = (): void => {
   `);
 };
 
-export function parseArgs(isServer: boolean = false): Object {
+export function parseArgs(isServer: boolean = false): Args {
   const definition = {
     "-l": "local_port",
     "-p": "server_port",
@@ -43,7 +45,7 @@ export function parseArgs(isServer: boolean = false): Object {
     "-b": "local_address",
     "-t": "timeout",
   };
-  const result = {};
+  const result: Args = {};
   let nextIsValue: boolean = false;
   let lastKey: string = null;
   for (let oneArg of process.argv) {
