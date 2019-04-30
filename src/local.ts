@@ -331,12 +331,12 @@ export function main() {
   }
   if (!fs.existsSync(configPath)) {
     configPath = path.resolve(__dirname, "config.json");
-    if (!fs.existsSync(configPath)) {
-      configPath = path.resolve(__dirname, "../../config.json");
-      if (!fs.existsSync(configPath)) {
-        configPath = null;
-      }
-    }
+  }
+  if (!fs.existsSync(configPath)) {
+    configPath = path.resolve(__dirname, "../../config.json");
+  }
+  if (!fs.existsSync(configPath)) {
+    configPath = null;
   }
 
   if (configPath) {
