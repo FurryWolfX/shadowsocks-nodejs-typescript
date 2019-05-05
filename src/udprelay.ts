@@ -4,7 +4,7 @@ import * as utils from "./utils";
 import * as inet from "./inet";
 import * as encryptor from "./encrypt";
 import Timeout = NodeJS.Timeout;
-import { Socket, SocketType } from "dgram";
+import { Socket, SocketType, RemoteInfo } from "dgram";
 import { AddressInfo } from "net";
 
 class LRUCache {
@@ -223,8 +223,8 @@ export function createServer(
           client = dgram.createSocket("udp4");
         }
         clients.setItem(key, client);
-        client.on("message", (data1, rinfo1) => {
-          let data2;
+        client.on("message", (data1: Buffer, rinfo1: RemoteInfo) => {
+          let data2: Buffer;
           if (!isLocal) {
             // on remote, server to client
             // append shadowsocks response header

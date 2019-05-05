@@ -49,10 +49,10 @@ export function createServer(serverAddr, serverPort, port, key, method, timeout,
     let encryptor: Encryptor = new Encryptor(key, method);
     let stage: number = 0;
     let headerLength: number = 0;
-    let remote = null;
+    let remote: net.Socket = null;
     let addrLen: number = 0;
-    let remoteAddr = null;
-    let remotePort = null;
+    let remoteAddr: string | boolean = null;
+    let remotePort: number = null;
     let addrToSend: string = "";
 
     utils.debug(`connections: ${connections}`);
@@ -323,8 +323,8 @@ export function createServer(serverAddr, serverPort, port, key, method, timeout,
 
 export function main() {
   console.log(utils.version);
-  let configFromArgs = utils.parseArgs();
-  let configPath = "config.json";
+  let configFromArgs: Args = utils.parseArgs();
+  let configPath: string = "config.json";
   let config: Args;
   if (configFromArgs.config_file) {
     configPath = configFromArgs.config_file;
@@ -341,7 +341,7 @@ export function main() {
 
   if (configPath) {
     utils.info("loading config from " + configPath);
-    let configContent = fs.readFileSync(configPath);
+    let configContent: Buffer = fs.readFileSync(configPath);
     try {
       config = JSON.parse(configContent.toString());
     } catch (e) {
@@ -378,3 +378,5 @@ export function main() {
     });
   });
 }
+
+main();
