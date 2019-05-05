@@ -333,7 +333,7 @@ export function main() {
     configPath = path.resolve(__dirname, "config.json");
   }
   if (!fs.existsSync(configPath)) {
-    configPath = path.resolve(__dirname, "../../config.json");
+    configPath = path.resolve(__dirname, "../config.json");
   }
   if (!fs.existsSync(configPath)) {
     configPath = null;

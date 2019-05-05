@@ -1,1 +1,1 @@
-require("../src/server").main();
+require("../dist/server").main();

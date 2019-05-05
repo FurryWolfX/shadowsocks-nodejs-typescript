@@ -1,1 +1,1 @@
-require("../src/local").main();
+require("../dist/local").main();

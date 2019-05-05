@@ -1,6 +1,7 @@
 import { Args } from "./interface";
+import * as path from "path";
 
-const pack = require("../../package.json");
+const pack = require(path.resolve(__dirname, "../package.json"));
 
 const printLocalHelp = (): void => {
   console.log(`
