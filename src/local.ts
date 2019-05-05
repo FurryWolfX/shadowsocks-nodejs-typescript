@@ -378,5 +378,3 @@ export function main() {
     });
   });
 }
-
-main();
